@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IoT Lab 2 - PiCar-X Controller</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    .header { text-align: center; padding: 20px 0 10px; }
+    .header h1 { font-size: 26px; color: #00d4ff; }
+    .header p { color: #888; font-size: 13px; margin-top: 4px; }
+
+    /* Connection Bar */
+    .conn-bar {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; padding: 12px 20px; margin: 10px auto;
+      max-width: 700px; background: rgba(255,255,255,0.05);
+      border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .conn-bar label { font-size: 14px; color: #aaa; }
+    .conn-bar input {
+      padding: 8px 12px; border-radius: 6px; border: 1px solid #555;
+      background: #1a1a2e; color: #fff; font-size: 14px;
+    }
+    .conn-bar input:focus { outline: none; border-color: #00d4ff; }
+    #ipInput { width: 150px; }
+    #portInput { width: 70px; }
+    .btn-conn {
+      padding: 8px 24px; border: none; border-radius: 6px;
+      font-size: 14px; font-weight: bold; cursor: pointer;
+    }
+    .btn-conn.on { background: #00d4ff; color: #000; }
+    .btn-conn.on:hover { background: #33dfff; }
+    .btn-conn.off { background: #ff4757; color: #fff; }
+    .btn-conn.off:hover { background: #ff6b7a; }
+    .dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      display: inline-block;
+    }
+    .dot.red { background: #ff4757; box-shadow: 0 0 6px #ff4757; }
+    .dot.green { background: #2ed573; box-shadow: 0 0 6px #2ed573; }
+
+    /* Layout */
+    .main {
+      display: flex; gap: 20px; max-width: 900px;
+      margin: 15px auto; padding: 0 20px;
+    }
+
+    /* Control Panel */
+    .ctrl-panel {
+      flex: 1; background: rgba(255,255,255,0.05);
+      border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+      padding: 20px; text-align: center;
+    }
+    .ctrl-panel h2 { font-size: 16px; color: #00d4ff; margin-bottom: 15px; }
+    .arrows {
+      display: grid;
+      grid-template-areas: ". up ." "left stop right" ". down .";
+      grid-template-columns: repeat(3, 80px);
+      grid-template-rows: repeat(3, 70px);
+      gap: 8px; justify-content: center;
+    }
+    .abtn {
+      border: none; border-radius: 12px; font-size: 22px;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; flex-direction: column; color: #fff;
+      transition: transform 0.1s;
+    }
+    .abtn span { font-size: 10px; margin-top: 2px; }
+    .abtn.mv {
+      background: linear-gradient(145deg, #3742fa, #2832c2);
+      box-shadow: 0 4px 12px rgba(55,66,250,0.3);
+    }
+    .abtn.mv:hover { transform: scale(1.05); }
+    .abtn.mv:active { transform: scale(0.95); }
+    .abtn.st {
+      background: linear-gradient(145deg, #ff4757, #c0392b);
+      box-shadow: 0 4px 12px rgba(255,71,87,0.3);
+    }
+    .abtn.st:active { transform: scale(0.95); }
+    .btn-up { grid-area: up; }
+    .btn-left { grid-area: left; }
+    .btn-stop { grid-area: stop; }
+    .btn-right { grid-area: right; }
+    .btn-down { grid-area: down; }
+    .hint { margin-top: 12px; font-size: 11px; color: #555; }
+
+    /* Status Panel */
+    .stat-panel {
+      flex: 1.2; background: rgba(255,255,255,0.05);
+      border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+      padding: 20px;
+    }
+    .stat-panel h2 { font-size: 16px; color: #2ed573; margin-bottom: 15px; text-align: center; }
+    .row {
+      display: flex; justify-content: space-between;
+      padding: 9px 12px; margin-bottom: 5px;
+      background: rgba(255,255,255,0.03); border-radius: 8px;
+      border-left: 3px solid transparent;
+    }
+    .row:hover { border-left-color: #00d4ff; }
+    .rlbl { color: #888; font-size: 13px; }
+    .rval { color: #fff; font-size: 14px; font-weight: 600; font-family: Consolas, monospace; }
+
+    /* Message bar */
+    .msg-bar {
+      display: flex; gap: 10px; max-width: 900px;
+      margin: 12px auto; padding: 0 20px;
+    }
+    .msg-bar input {
+      flex: 1; padding: 10px 14px; border-radius: 8px;
+      border: 1px solid #555; background: #1a1a2e; color: #fff; font-size: 14px;
+    }
+    .msg-bar input:focus { outline: none; border-color: #00d4ff; }
+    .btn-send {
+      padding: 10px 20px; background: #ffa502; color: #000;
+      border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+    }
+    .btn-send:hover { background: #ffbe33; }
+
+    /* Log */
+    .log {
+      text-align: center; padding: 8px; color: #555;
+      font-size: 12px; font-family: Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>CS 437: IoT Lab 2 - PiCar-X WiFi Controller</h1>
+    <p>Remote control via WiFi + Electron.js</p>
+  </div>
+
+  <!-- Connection -->
+  <div class="conn-bar">
+    <span class="dot red" id="dot"></span>
+    <label>Pi IP:</label>
+    <input type="text" id="ipInput" placeholder="192.168.x.x" />
+    <label>Port:</label>
+    <input type="text" id="portInput" value="65432" />
+    <button class="btn-conn on" id="connBtn" onclick="toggleConnection()">Connect</button>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Controls -->
+    <div class="ctrl-panel">
+      <h2>Car Controls</h2>
+      <div class="arrows">
+        <button class="abtn mv btn-up" onclick="sendCmd('forward')">▲<span>FWD</span></button>
+        <button class="abtn mv btn-left" onclick="sendCmd('left')">◀<span>LEFT</span></button>
+        <button class="abtn st btn-stop" onclick="sendCmd('stop')">■<span>STOP</span></button>
+        <button class="abtn mv btn-right" onclick="sendCmd('right')">▶<span>RIGHT</span></button>
+        <button class="abtn mv btn-down" onclick="sendCmd('backward')">▼<span>BWD</span></button>
+      </div>
+      <div class="hint">Arrow keys / WASD to move, Space to stop</div>
+    </div>
+
+    <!-- Status -->
+    <div class="stat-panel">
+      <h2>Car Status</h2>
+      <div class="row"><span class="rlbl">CPU Temperature</span><span class="rval" id="vTemp">-- C</span></div>
+      <div class="row"><span class="rlbl">Battery</span><span class="rval" id="vBat">--% (--V)</span></div>
+      <div class="row"><span class="rlbl">Speed</span><span class="rval" id="vSpd">--</span></div>
+      <div class="row"><span class="rlbl">Direction</span><span class="rval" id="vDir">--</span></div>
+      <div class="row"><span class="rlbl">Steering Angle</span><span class="rval" id="vSteer">--</span></div>
+      <div class="row"><span class="rlbl">Distance Traveled</span><span class="rval" id="vDist">-- cm</span></div>
+      <div class="row"><span class="rlbl">Obstacle Distance</span><span class="rval" id="vObst">-- cm</span></div>
+      <div class="row"><span class="rlbl">Last Update</span><span class="rval" id="vTime">--:--:--</span></div>
+    </div>
+  </div>
+
+  <!-- Custom message -->
+  <div class="msg-bar">
+    <input type="text" id="msgInput" placeholder="Send custom message to Pi..." />
+    <button class="btn-send" onclick="sendCustom()">Send</button>
+  </div>
+
+  <div class="log" id="logBar">Enter Pi IP and press Connect.</div>
+
+  <script src="index.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "iot-lab2-picar-controller",
+  "version": "1.0.0",
+  "description": "CS437 IoT Lab 2 - PiCar-X WiFi Remote Control",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "CS437 Student",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  }
+}
