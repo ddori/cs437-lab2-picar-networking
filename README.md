@@ -1,16 +1,16 @@
 # IoT Lab 2 - PiCar-X Networking (Bluetooth + WiFi)
-CS 437 @ UIUC
+CS 437 Internet of Things @ UIUC
 
-## 파일 구조
+## Project Structure
 
 ```
-iot-lab2/
-├── bluetooth/                     ← 블루투스 (보너스 5점)
-│   ├── pi_bluetooth_server.py     ← Pi에서 실행
-│   └── pc_bluetooth_client.py     ← PC에서 실행 (Tkinter GUI)
-├── wifi_server/                   ← WiFi 서버 (메인)
-│   └── wifi_server.py             ← Pi에서 실행
-├── electron_app/                  ← Electron 프론트엔드 (메인)
+cs437-lab2-picar-networking/
+├── bluetooth/                     ← Bluetooth (bonus 5 pts)
+│   ├── pi_bluetooth_server.py     ← Run on Raspberry Pi
+│   └── pc_bluetooth_client.py     ← Run on PC (Tkinter GUI)
+├── wifi_server/                   ← WiFi server (main)
+│   └── wifi_server.py             ← Run on Raspberry Pi
+├── electron_app/                  ← Electron frontend (main)
 │   ├── package.json
 │   ├── main.js
 │   ├── preload.js
@@ -19,92 +19,95 @@ iot-lab2/
 └── README.md
 ```
 
-## 네 Lab 1 코드와 연동
+## PiCar-X Integration
 
-Pi쪽 서버 코드(pi_bluetooth_server.py, wifi_server.py) 모두
-네 Lab 1의 PiCar-X API를 그대로 사용:
+Both Pi server scripts use the same PiCar-X API from Lab 1:
 
 - `from picarx import Picarx` / `px = Picarx()`
 - `px.forward(speed)` / `px.backward(speed)` / `px.stop()`
-- `px.set_dir_servo_angle(angle)` (-30 ~ +30)
-- `px.ultrasonic.read()` (3회 평균, 네 get_front_dist() 방식)
-- 기본 속도: 5, 조향각: 30 (Lab 1과 동일)
+- `px.set_dir_servo_angle(angle)` (-30 to +30)
+- `px.ultrasonic.read()` (3-sample average with zero filtering)
+- Default speed: 5, turn angle: 30 (same as Lab 1)
 
-## 전송하는 데이터 (8가지, 최소 3개 요구사항 초과)
+## Data Transmitted (8 fields, exceeds the minimum 3 requirement)
 
-| Pi → PC | 설명 |
-|---------|------|
-| cpu_temp | CPU 온도 (°C) |
-| battery_percent | 배터리 잔량 (%) |
-| battery_voltage | 배터리 전압 (V) |
-| speed | 현재 속도 |
-| direction | 방향 (forward/backward/left/right/stopped) |
-| steering_angle | 조향각 (°) |
-| distance_traveled | 누적 주행 거리 (cm) |
-| obstacle_dist | 초음파 장애물 거리 (cm) |
+### Pi to PC (Status)
 
-| PC → Pi | 설명 |
-|---------|------|
-| forward | 전진 |
-| backward | 후진 |
-| left | 좌회전 |
-| right | 우회전 |
-| stop | 정지 |
-| GET_STATUS | 상태 요청 |
+| Field              | Description                                      |
+|--------------------|--------------------------------------------------|
+| cpu_temp           | CPU temperature (C)                              |
+| battery_percent    | Battery level (%)                                |
+| battery_voltage    | Battery voltage (V)                              |
+| speed              | Current motor speed                              |
+| direction          | Movement direction (forward/backward/left/right/stopped) |
+| steering_angle     | Steering servo angle (deg)                       |
+| distance_traveled  | Accumulated travel distance (cm)                 |
+| obstacle_dist      | Ultrasonic obstacle distance (cm)                |
+
+### PC to Pi (Commands)
+
+| Command     | Action           |
+|-------------|------------------|
+| forward     | Drive forward    |
+| backward    | Drive backward   |
+| left        | Turn left        |
+| right       | Turn right       |
+| stop        | Stop all motors  |
+| GET_STATUS  | Request status   |
 
 ---
 
-## 실행 방법
+## How to Run
 
-### 블루투스 (보너스)
+### Bluetooth (Bonus)
 
-**Pi 사전 설정:**
+**Pi setup (one time):**
 ```bash
-# bluez.service 수정 (lab 문서 참고)
+# Edit bluez.service (see lab document for details)
 sudo nano /etc/systemd/system/dbus-org.bluez.service
-# ExecStart 줄 끝에 -C 추가
-# ExecStartPost=/usr/bin/sdptool add SP 줄 추가
+# Add -C to the end of the ExecStart line
+# Add line: ExecStartPost=/usr/bin/sdptool add SP
 sudo systemctl daemon-reload
 sudo systemctl restart bluetooth.service
 ```
 
-**Pi에서:**
+**On Raspberry Pi:**
 ```bash
 python3 pi_bluetooth_server.py
 ```
 
-**PC에서:**
-1. pc_bluetooth_client.py 열어서 `SERVER_MAC` 수정
-   (Pi MAC 확인: Pi에서 `bluetoothctl show`)
-2. 실행:
+**On PC:**
+1. Open `pc_bluetooth_client.py` and set `SERVER_MAC` to your Pi's Bluetooth MAC address
+   (Find it on Pi: `bluetoothctl show`)
+2. Run:
 ```bash
 python3 pc_bluetooth_client.py
 ```
 
-### WiFi + Electron (메인)
+### WiFi + Electron (Main)
 
-**Pi에서:**
+**On Raspberry Pi:**
 ```bash
 python3 wifi_server.py
-# 출력되는 IP 주소 메모
+# Note the IP address printed on startup
 ```
 
-**PC에서:**
+**On PC:**
 ```bash
 cd electron_app
-npm install     # 처음 한 번
+npm install     # first time only
 npm start
 ```
-→ IP 입력 → Connect → 버튼/키보드로 제어
+Enter the Pi's IP address in the app, click Connect, then control the car using buttons or keyboard.
 
 ---
 
-## 키보드 단축키 (블루투스 & Electron 둘 다)
+## Keyboard Shortcuts (both Bluetooth and Electron)
 
-| 키 | 동작 |
-|----|------|
-| ↑ / W | 전진 |
-| ↓ / S | 후진 |
-| ← / A | 좌회전 |
-| → / D | 우회전 |
-| Space / Q | 정지 |
+| Key         | Action    |
+|-------------|-----------|
+| Up / W      | Forward   |
+| Down / S    | Backward  |
+| Left / A    | Turn left |
+| Right / D   | Turn right|
+| Space / Q   | Stop      |
