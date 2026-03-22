@@ -146,6 +146,13 @@ function updateDisplay(s) {
 // ---- Keyboard ----
 
 document.addEventListener("keydown", (e) => {
+  const typing = document.activeElement === el("msgInput");
+
+  if (typing) {
+    if (e.key === "Enter") sendCustom();
+    return;
+  }
+
   if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)) {
     e.preventDefault();
   }
@@ -155,9 +162,6 @@ document.addEventListener("keydown", (e) => {
     case "ArrowLeft": case "a": case "A": sendCmd("left"); break;
     case "ArrowRight": case "d": case "D": sendCmd("right"); break;
     case " ": case "q": case "Q": sendCmd("stop"); break;
-    case "Enter":
-      if (document.activeElement === el("msgInput")) sendCustom();
-      break;
   }
 });
 
