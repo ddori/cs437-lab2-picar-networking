@@ -23,7 +23,7 @@ from picarx import Picarx
 px = Picarx()
 
 # ---- Settings (same defaults as your Lab 1) ----
-MOVE_SPEED = 5
+MOVE_SPEED = 30
 TURN_ANGLE = 30
 RFCOMM_CHANNEL = 1
 
@@ -225,7 +225,7 @@ def main():
     server_sock = socket.socket(
         socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM
     )
-    server_sock.bind(("", RFCOMM_CHANNEL))
+    server_sock.bind(("88:A2:9E:57:C9:0D", RFCOMM_CHANNEL))
     server_sock.listen(1)
 
     print("=" * 50)
