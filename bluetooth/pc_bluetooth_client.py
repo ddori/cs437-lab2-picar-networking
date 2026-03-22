@@ -30,9 +30,8 @@ from tkinter import messagebox
 # CHANGE THIS to your Pi's Bluetooth MAC address!
 # Find it: on Pi run "bluetoothctl show" or "hciconfig"
 # ============================================================
-SERVER_MAC = "XX:XX:XX:XX:XX:XX"
+SERVER_MAC = "88:A2:9E:57:C9:0D"
 RFCOMM_CHANNEL = 1
-
 
 class CarControlApp:
     def __init__(self, root):
